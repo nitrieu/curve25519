@@ -615,7 +615,7 @@ int main(int argc, char**argv)
 	U_WORD A[K_WORDS], B[K_WORDS], C[K_WORDS], T[2 * K_WORDS];
 	U8 a[32], b[32], c[32], d[32];
 
-	U32 n = 1 << 16;
+	U32 n = 1 << 20;
 	mem_fill(b, 0, 32);
 
 	clock_t t;
@@ -625,9 +625,9 @@ int main(int argc, char**argv)
 	for (int i = 0; i < n; i++)
 	{
 		int order_test, on_curve;
-		GetRandomBytes(b, 32);
-		//b[0] = (U8)(i+10);
-		//b[31] &= 0x7f;
+		//GetRandomBytes(b, 32);
+		b[0] = (U8)(i+10);
+		b[31] &= 0x7f;
 		/*ecp_PointMultiply(b, ecp_BasePoint, b, 32); */
 		ecp_PointMultiply(a, b, _b_Om111, 32);
 		order_test = (memcmp(a, b, 32) == 0) ? 1 : 0;
@@ -645,6 +645,7 @@ int main(int argc, char**argv)
 
 	t = clock() - t;
 	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds 
+	printf("n= \n", n);
 	printf("on_curve? took %f seconds to execute \n", time_taken);
 
 	return 0;
@@ -652,7 +653,8 @@ int main(int argc, char**argv)
 	//on_curve? took 237.250000 seconds to execute  U32 n = 1 << 20
 //	on_curve ? took 14.870000 seconds to execute n = 1 << 16
 
- 
+ //took 211.520000 seconds to execute n = 1 << 20
+
 
 
 
