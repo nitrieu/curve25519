@@ -619,12 +619,12 @@ int main(int argc, char**argv)
 
 	U8 a[32], b[1 << 16][32], c[32], d[32];
 
-	U32 n = 1 << 8;
+	U32 n = 1 << 10;
 	
 	clock_t t, total_time;
 	int cnt_on_curve = 0;
 
-	for (int k = 0; k < 20; k+=2)
+	for (int k = 12; k < 20; k+=2) 
 	{
 		U32 m = 1 << k;
 		total_time = 0;
