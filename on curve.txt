@@ -29,3 +29,6 @@ on_curve? took 31.760000 seconds to execute
 
 n= 4194304       cnt_on_curve: 2795011
 on_curve? took 127.390000 seconds to execute
+
+n= 16777216      cnt_on_curve: 10488617
+on_curve? took 508.200000 seconds to execute
