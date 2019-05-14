@@ -22,6 +22,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#pragma once 
 #if defined(_MSC_VER)
 #include <windows.h>
 #else
@@ -30,6 +31,7 @@
 #endif
 #include <memory.h>
 #include "../source/sha512.h"
+
 
 /* Customize this with your own random key */
 static const unsigned char my_secret_key[] =

@@ -488,7 +488,7 @@ W256(0x4A0EA0B0, 0xC4EE1B27, 0xAD2FE478, 0x2F431806, 0x3DFBD7A7, 0x2B4D0099, 0x4
 
 /* Y = X ** E mod P */
 /* E is in little-endian format */
-void ecp_ExpMod(U_WORD* Y, const U_WORD* X, const U8* E, int bytes)
+void ecp_ExpMod1(U_WORD* Y, const U_WORD* X, const U8* E, int bytes)
 {
 	int i;
 	ecp_SetValue(Y, 1);
@@ -506,7 +506,7 @@ void ecp_ExpMod(U_WORD* Y, const U_WORD* X, const U8* E, int bytes)
 }
 
 
-void ecp_CalculateY(OUT U8 *Y, IN const U8 *X)
+void ecp_CalculateY1(OUT U8 *Y, IN const U8 *X)
 {
 	U_WORD A[K_WORDS], B[K_WORDS], T[K_WORDS];
 
@@ -516,7 +516,7 @@ void ecp_CalculateY(OUT U8 *Y, IN const U8 *X)
 	ecp_MulReduce(A, A, T);     /* x^2 + 486662x */
 	ecp_MulReduce(A, A, T);     /* x^3 + 486662x^2 */
 	ecp_AddReduce(A, A, T);     /* x^3 + 486662x^2 + x */
-	ecp_ExpMod(T, A, _b_Pp3d811, 32);
+	ecp_ExpMod1(T, A, _b_Pp3d811, 32);
 	/* if T*T != A: T *= sqrt(-1) */
 	ecp_MulMod(B, T, T);
 	if (ecp_CmpNE(B, A)) ecp_MulMod(T, T, _w_I11);
@@ -527,7 +527,7 @@ const U_WORD _w_P11[K_WORDS] =
 W256(0xFFFFFFED, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x7FFFFFFF);
 
 // check if y^2 == x^3 + 486662x^2 + x  mod 2^255 - 19
-int x25519_IsOnCurve(IN const U_WORD *X, IN const U_WORD *Y)
+int x25519_IsOnCurve1(IN const U_WORD *X, IN const U_WORD *Y)
 {
 	U_WORD A[K_WORDS], B[K_WORDS];
 
@@ -565,7 +565,7 @@ static const unsigned char my_secret_key[] =
 	0x57,0x71,0xca,0xc2,0x19,0xdb,0x07,0xc2,0x82,0xaf,0x41,0x9f,0x57,0xb5,0x7b,0x21
 };
 
-void GetRandomBytes(unsigned char *buffer, int size)
+void GetRandomBytes1(unsigned char *buffer, int size)
 {
 #if defined(_MSC_VER)
 	HCRYPTPROV hcp;
@@ -610,44 +610,66 @@ void GetRandomBytes(unsigned char *buffer, int size)
 }
 
 
+typedef unsigned char curved25519_key[32];
+
 int main(int argc, char**argv)
 {
 	U_WORD A[K_WORDS], B[K_WORDS], C[K_WORDS], T[2 * K_WORDS];
-	U8 a[32], b[32], c[32], d[32];
-
-	U32 n = 1 << 20;
-	mem_fill(b, 0, 32);
-
-	clock_t t;
-	t = clock();
 
 
-	for (int i = 0; i < n; i++)
+	U8 a[32], b[1 << 16][32], c[32], d[32];
+
+	U32 n = 1 << 8;
+	
+	clock_t t, total_time;
+	int cnt_on_curve = 0;
+
+	for (int k = 0; k < 20; k+=2)
 	{
-		int order_test, on_curve;
-		//GetRandomBytes(b, 32);
-		b[0] = (U8)(i+10);
-		b[31] &= 0x7f;
-		/*ecp_PointMultiply(b, ecp_BasePoint, b, 32); */
-		ecp_PointMultiply(a, b, _b_Om111, 32);
-		order_test = (memcmp(a, b, 32) == 0) ? 1 : 0;
+		U32 m = 1 << k;
+		total_time = 0;
 
-		/* It it on the curve? */
-		ecp_CalculateY(a, b);
-		ecp_BytesToWords(A, a);
-		ecp_BytesToWords(B, b);
-		on_curve = x25519_IsOnCurve(B, A);
-		/*if (on_curve) printf("OnCurve=True"); else printf("OnCurve=FALSE");
-		if (order_test) printf("  Order=BPO\n"); else printf("  Order=DIFFERENT\n");
-		ecp_PrintHexBytes("x", b, 32);
-		ecp_PrintHexBytes("y", a, 32);*/
+		for (int j = 0; j < m; j++) //num point=m*n
+		{
+			for (int i = 0; i < n; i++)
+			{
+				mem_fill(b[i], 0, 32);
+				GetRandomBytes1(b[i], 32);
+			}
+
+			t = clock();
+
+			for (int i = 0; i < n; i++)
+			{
+				int order_test, on_curve;
+				/*
+				b[0] = (U8)(i+10);
+				b[31] &= 0x7f;*/
+				/*ecp_PointMultiply(b, ecp_BasePoint, b, 32); */
+			/*	ecp_PointMultiply(a, b, _b_Om111, 32);
+				order_test = (memcmp(a, b, 32) == 0) ? 1 : 0;*/
+
+				/* It it on the curve? */
+				ecp_CalculateY1(a, b[i]);
+				ecp_BytesToWords(A, a);
+				ecp_BytesToWords(B, b[i]);
+				on_curve = x25519_IsOnCurve1(B, A);
+				if (on_curve)
+					cnt_on_curve++;
+				/*if (on_curve) printf("OnCurve=True"); else printf("OnCurve=FALSE");
+				if (order_test) printf("  Order=BPO\n"); else printf("  Order=DIFFERENT\n");
+				ecp_PrintHexBytes("x", b, 32);
+				ecp_PrintHexBytes("y", a, 32);*/
+			}
+
+			t = clock() - t;
+			total_time += t;
+		}
+
+		double time_taken = ((double)total_time) / CLOCKS_PER_SEC; // in seconds 
+		printf("n= %d \t cnt_on_curve: %d \n", n*m, cnt_on_curve);
+		printf("on_curve? took %f seconds to execute \n\n\n", time_taken);
 	}
-
-	t = clock() - t;
-	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds 
-	printf("n= \n", n);
-	printf("on_curve? took %f seconds to execute \n", time_taken);
-
 	return 0;
 
 	//on_curve? took 237.250000 seconds to execute  U32 n = 1 << 20

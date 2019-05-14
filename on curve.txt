@@ -1,0 +1,31 @@
+./build64/curve25519_test || exit 1
+n= 256   cnt_on_curve: 143
+on_curve? took 0.010000 seconds to execute
+
+
+n= 1024          cnt_on_curve: 645
+on_curve? took 0.030000 seconds to execute
+
+
+n= 4096          cnt_on_curve: 2657
+on_curve? took 0.130000 seconds to execute
+
+
+n= 16384         cnt_on_curve: 10877
+on_curve? took 0.470000 seconds to execute
+
+
+n= 65536         cnt_on_curve: 43513
+on_curve? took 1.920000 seconds to execute
+
+
+n= 262144        cnt_on_curve: 174988
+on_curve? took 8.020000 seconds to execute
+
+
+n= 1048576       cnt_on_curve: 699575
+on_curve? took 31.760000 seconds to execute
+
+
+n= 4194304       cnt_on_curve: 2795011
+on_curve? took 127.390000 seconds to execute

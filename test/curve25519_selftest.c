@@ -389,9 +389,9 @@ void edp_DualPointMultiply(
 
 void print_words(IN const char *txt, IN const U_WORD *data, IN U32 size)
 {
-    U32 i;
+    /*U32 i;
     printf("%s0x%08X", txt, *data++);
-    for (i = 1; i < size; i++) printf(",0x%08X", *data++);
+    for (i = 1; i < size; i++) printf(",0x%08X", *data++);*/
 }
 
 void pre_compute_base_point()
